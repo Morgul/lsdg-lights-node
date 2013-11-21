@@ -1,0 +1,19 @@
+{
+  "name": "lsdg-lights-node",
+  "version": "0.0.1",
+  "description": "A rewrite of the lsdg lights application in node.js.",
+  "main": "lights.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Christopher S. Case <chris.case@g33xnexus.com>",
+  "license": "MIT",
+  "dependencies": {
+    "speaker": "0.0.10",
+    "lame": "~1.0.3",
+    "walk": "~2.2.1",
+    "audiolib": "~0.6.6",
+    "pcm-utils": "0.0.2",
+    "fft": "~0.2.1"
+  }
+}

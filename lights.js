@@ -11,7 +11,7 @@ var Comm = require('./lib/comm');
 // ---------------------------------------------------------------------------------------------------------------------
 
 var player = new Player();
-var spectrum = new Spectrum(player);
+//var spectrum = new Spectrum(player);
 var comm = new Comm(player);
 
 comm.on('initialized', function()

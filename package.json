@@ -13,6 +13,7 @@
     "lame": "~1.0.3",
     "walk": "~2.2.1",
     "fft": "~0.2.1",
-    "omega-logger": "~0.5.2"
+    "omega-logger": "~0.5.2",
+    "socket.io-client": "~0.9.16"
   }
 }

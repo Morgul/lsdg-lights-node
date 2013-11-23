@@ -14,7 +14,7 @@ var logger = require('omega-logger').loggerFor(module);
 
 var player = new Player();
 //var spectrum = new Spectrum(player);
-var comm = new Comm(player);
+var comm = new Comm(player, 'http://lights.lsdg.org:8080/rpi');
 
 comm.on('initialized', function()
 {

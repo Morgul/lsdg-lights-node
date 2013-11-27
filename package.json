@@ -4,7 +4,8 @@
   "description": "A rewrite of the lsdg lights application in node.js.",
   "main": "lights.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node lights.js"
   },
   "author": "Christopher S. Case <chris.case@g33xnexus.com>",
   "license": "MIT",
@@ -12,7 +13,6 @@
     "speaker": "0.0.10",
     "lame": "~1.0.3",
     "walk": "~2.2.1",
-    "fft": "~0.2.1",
     "omega-logger": "~0.5.2",
     "socket.io-client": "~0.9.16"
   }

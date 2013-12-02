@@ -19,7 +19,7 @@ var player = new Player();
 var comm = new Comm(player, config.get('lightSite', 'http://localhost:8080/rpi'));
 var serial = new Serial(comm);
 
-comm.on('initialized', function()
+serial.on('initialized', function()
 {
     logger.info('Starting LSDG Lightshow, v' + package.version);
 

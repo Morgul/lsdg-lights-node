@@ -23,7 +23,7 @@ module.exports = {
 
     // Should be a valid path to the root folder containing music. We search recursively for all `.mp3` files that have
     // valid .json files of the same name. If you need to generate metadata, run `./scripts/buildMetadata.py`.
-    musicDir: "/home/travis/Music/Buffy1",
+    musicDir: "./music",
 
     // URL to connect to the light controller website at.
     lightSite: "http://lights.lsdg.org:8080/rpi",

@@ -26,7 +26,7 @@ module.exports = {
     musicDir: "./music",
 
     // URL to connect to the light controller website at.
-    lightSite: "http://lights.lsdg.com:8080/rpi",
+    lightSite: "http://lights.lsdg.org:8080/rpi",
 
     // Default thresholds
     threshold: [

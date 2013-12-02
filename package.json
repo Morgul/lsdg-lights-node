@@ -1,6 +1,6 @@
 {
   "name": "lsdg-lights-node",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A rewrite of the lsdg lights application in node.js.",
   "main": "lights.js",
   "scripts": {

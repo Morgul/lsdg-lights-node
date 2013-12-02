@@ -23,16 +23,19 @@ module.exports = {
 
     // Should be a valid path to the root folder containing music. We search recursively for all `.mp3` files that have
     // valid .json files of the same name. If you need to generate metadata, run `./scripts/buildMetadata.py`.
-    musicDir: "./music",
+    musicDir: "/home/travis/Music/Buffy1",
 
     // URL to connect to the light controller website at.
     lightSite: "http://lights.lsdg.org:8080/rpi",
 
     // Default thresholds
-    threshold: [
-        0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8,
-        0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8
-    ]
+    defaultThresholds: [
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+    ],
+
+    serialPort: "/dev/ttyACM0",
+    serialBaudrate: 115200
 }; // end exports
 
 //----------------------------------------------------------------------------------------------------------------------

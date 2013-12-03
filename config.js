@@ -29,12 +29,18 @@ module.exports = {
     lightSite: "http://lights.lsdg.org:8080/rpi",
 
     // Default thresholds
-    defaultThresholds: [
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-    ],
+    defaultThresholds: [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ],
 
-    serialPort: "/dev/ttyACM0",
+    // Fake serial port for testing
+    //serialPort: "/dev/ttys0",
+
+    // Arduino USB serial port
+    //serialPort: "/dev/ttyACM0",
+
+    // Raspberry Pi GPIO Serial port
+    serialPort: "/dev/ttyAMA0",
+
+    // Arduino baud rate
     serialBaudrate: 115200
 }; // end exports
 

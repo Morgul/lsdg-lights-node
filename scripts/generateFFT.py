@@ -1,18 +1,11 @@
-#!/usr/bin/env python
+"""Update the json metadata file with per-song thresholds.
 
-#-----------------------------------------------------------------------------------------------------------------------
-# Update the json metadata file with per-song thresholds.
-#
-# Usage:
-#   $ ./generateFFT.py ~/music/some_song.mp3
-#-----------------------------------------------------------------------------------------------------------------------
-
+"""
+from __future__ import print_function
 import csv
 from itertools import chain
-import json
 import math
 import numpy
-import sys
 
 import audioread
 
@@ -125,55 +118,50 @@ def calculateLevels(chunk, channelBuckets):
         yield buckets(power)
 
 
-inputFilename = sys.argv[1]
-with audioread.audio_open(inputFilename) as audioFile:
-    if audioFile.channels == 2:
-        channelNames = ['Left', 'Right']
-    else:
-        channelNames = ['Channel {}'.format(channel) for channel in range(audioFile.channels)]
+def generateFFT(inputFilename):
+    with audioread.audio_open(inputFilename) as audioFile:
+        if audioFile.channels == 2:
+            # In the case of two channels, we have names for these things
+            channelNames = ['Left', 'Right']
+        else:
+            channelNames = ['Channel {}'.format(channel) for channel in range(audioFile.channels)]
 
-    channelBuckets = [
-            FrequencyBuckets(audioFile.samplerate, freqChannelCount / audioFile.channels, channelName)
-            for channelName in channelNames
-            ]
+        # Create FrequencyBuckets instances for each audio channel, so we can generate thresholds for each.
+        channelBuckets = [
+                FrequencyBuckets(audioFile.samplerate, freqChannelCount / audioFile.channels, channelName)
+                for channelName in channelNames
+                ]
 
-    csvFilename = inputFilename[:-4] + '.csv'
-    jsonFilename = inputFilename[:-4] + '.json'
+        csvFilename = inputFilename.replace('.mp3', '.csv')
 
-    with open(csvFilename, 'wb') as csvFile:
-        writer = csv.writer(csvFile)
+        with open(csvFilename, 'wb') as csvFile:
+            writer = csv.writer(csvFile)
 
-        writer.writerow(list(chain(*[buckets.names for buckets in channelBuckets])))
+            writer.writerow(list(chain(*[buckets.names for buckets in channelBuckets])))
 
-        # Calculate the bytes per frame.
-        bytesPerFrame = audioFile.channels * bytesPerSample
+            # Calculate the number of bytes per frame (one sample on each channel) and per chunk (a collection of
+            # frames that we run through FFT at the same time)
+            bytesPerFrame = audioFile.channels * bytesPerSample
 
-        bytesPerChunk = channelBuckets[0].samplesPerFFT * bytesPerFrame
+            bytesPerChunk = channelBuckets[0].samplesPerFFT * bytesPerFrame
 
-        # A buffer for the audio, since audioread might not give it to us in the chunks we want
-        audioBuff = ''
+            # A buffer for the audio, since audioread might not give it to us in the chunks we want
+            audioBuff = ''
 
-        for chunk in audioFile:
-            audioBuff += chunk
+            for chunk in audioFile:
+                audioBuff += chunk
 
-            # Calculate the levels
-            while len(audioBuff) > bytesPerChunk:
-                chunk = audioBuff[:bytesPerChunk]
-                audioBuff = audioBuff[bytesPerChunk:]
+                while len(audioBuff) > bytesPerChunk:
+                    # Calculate the levels for the next chunk
+                    chunk = audioBuff[:bytesPerChunk]
+                    audioBuff = audioBuff[bytesPerChunk:]
 
-                writer.writerow(list(chain(*calculateLevels(chunk, channelBuckets))))
+                    writer.writerow(list(chain(*calculateLevels(chunk, channelBuckets))))
 
-    with open(jsonFilename, 'r+') as jsonFile:
-        metadata = json.load(jsonFile)
-
-        metadata['msPerLine'] = channelBuckets[0].samplesPerFFT / audioFile.samplerate * 1000
-        metadata['thresholds'] = list(chain(*[
-                buckets.thresholds()
-                for buckets in channelBuckets
-                ]))
-
-        jsonFile.seek(0)
-        json.dump(metadata, jsonFile)
-
-    for buckets in channelBuckets:
-        print(buckets.channelName, list(buckets.thresholds()))
+        return {
+                'msPerLine': channelBuckets[0].samplesPerFFT / audioFile.samplerate * 1000,
+                'thresholds': list(chain(*[
+                    buckets.thresholds()
+                    for buckets in channelBuckets
+                    ]))
+                }

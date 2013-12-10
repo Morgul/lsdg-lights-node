@@ -9,6 +9,7 @@
 
 import csv
 from itertools import chain
+import json
 import math
 import numpy
 import sys
@@ -30,8 +31,9 @@ bytesPerSample = 2
 
 
 class FrequencyBuckets(object):
-    def __init__(self, sampleRate, bucketCount):
+    def __init__(self, sampleRate, bucketCount, channelName):
         self.bucketCount = bucketCount
+        self.channelName = channelName
 
         # In order to be able to distinguish minFreq, we need `sampleRate / minFreq` samples per FFT calculation.
         self.realFFTOutputs = int(math.ceil(sampleRate / (2.0 * minFreq)))
@@ -42,6 +44,7 @@ class FrequencyBuckets(object):
         self.maxFreq = sampleRate / 2
 
         minFreqExponent = math.log(minFreq, 2)
+
         maxFreqExponent = math.log(self.maxFreq, 2)
         while 2 ** maxFreqExponent < self.maxFreq:
             maxFreqExponent += 0.00000001
@@ -54,7 +57,7 @@ class FrequencyBuckets(object):
                 ]
 
         self.names = [
-                '{} Hz'.format(2 ** (freqExponentDelta * (n + .5) + minFreqExponent))
+                '{} {} Hz'.format(channelName, 2 ** (freqExponentDelta * (n + .5) + minFreqExponent))
                 for n in range(1, bucketCount)
                 ]
 
@@ -70,10 +73,16 @@ class FrequencyBuckets(object):
             if not matched:
                 print("WARNING: Frequency {} didn't match any bucket!".format(freq))
 
+        self.amplitudes = [[]] * bucketCount
+
     def __call__(self, fftOutput):
         lastIdx = 0
-        for freqCount in self.freqCounts:
-            yield sum(fftOutput[lastIdx:lastIdx + freqCount]) / freqCount
+        for bucketIdx, freqCount in enumerate(self.freqCounts):
+            bucketAmplitude = sum(fftOutput[lastIdx:lastIdx + freqCount]) / freqCount
+
+            self.amplitudes[bucketIdx].append(bucketAmplitude)
+            yield bucketAmplitude
+
             lastIdx += freqCount
 
         if len(fftOutput) > lastIdx:
@@ -81,12 +90,26 @@ class FrequencyBuckets(object):
                     .format(len(fftOutput) - lastIdx, len(fftOutput), self.bucketCount)
                     )
 
+    def thresholds(self):
+        for amplitudes in self.amplitudes:
+            amplitudes.sort()
 
-def calculateLevels(chunk, buckets, channels):
+            # Discard the lowest 10th percentile
+            del amplitudes[:len(amplitudes) / 10]
+            #print(amplitudes)
+
+            # Average the remaining amplitudes
+            yield sum(amplitudes) / len(amplitudes)
+
+
+def calculateLevels(chunk, channelBuckets):
     # Convert raw data to numpy array
     chunk = numpy.frombuffer(chunk, numpy.int16)
 
-    for channelChunk in numpy.reshape(chunk, (channels, -1)):
+    # Separate chunks for each channel
+    channelChunks = numpy.reshape(chunk, (len(channelBuckets), -1))
+
+    for buckets, channelChunk in zip(channelBuckets, channelChunks):
         # Apply FFT - real data so rfft used
         fourier = numpy.fft.rfft(channelChunk)
 
@@ -94,8 +117,7 @@ def calculateLevels(chunk, buckets, channels):
         fourier = fourier[1:buckets.realFFTOutputs + 1]
 
         # Find amplitude of each frequency band
-        #power = numpy.log10(numpy.abs(fourier)) ** 2
-        power = numpy.abs(numpy.log10(fourier)) ** 2
+        power = 10.0 * numpy.log10(numpy.abs(fourier) ** 2)
 
         # Average the amplitudes into buckets
         yield buckets(power)
@@ -108,22 +130,23 @@ with audioread.audio_open(inputFilename) as audioFile:
     else:
         channelNames = ['Channel {}'.format(channel) for channel in range(audioFile.channels)]
 
-    buckets = FrequencyBuckets(audioFile.samplerate, freqChannelCount / audioFile.channels)
+    channelBuckets = [
+            FrequencyBuckets(audioFile.samplerate, freqChannelCount / audioFile.channels, channelName)
+            for channelName in channelNames
+            ]
 
-    csvFilename = inputFilename + '.csv'
+    csvFilename = inputFilename[:-4] + '.csv'
+    jsonFilename = inputFilename[:-4] + '.json'
 
     with open(csvFilename, 'wb') as csvFile:
         writer = csv.writer(csvFile)
 
-        writer.writerow(list(chain(*[
-                ['{} {}'.format(channel, name) for name in buckets.names]
-                for channel in channelNames
-                ])))
+        writer.writerow(list(chain(*[buckets.names for buckets in channelBuckets])))
 
         # Calculate the bytes per frame.
         bytesPerFrame = audioFile.channels * bytesPerSample
 
-        bytesPerChunk = buckets.samplesPerFFT * bytesPerFrame
+        bytesPerChunk = channelBuckets[0].samplesPerFFT * bytesPerFrame
 
         # A buffer for the audio, since audioread might not give it to us in the chunks we want
         audioBuff = ''
@@ -136,4 +159,19 @@ with audioread.audio_open(inputFilename) as audioFile:
                 chunk = audioBuff[:bytesPerChunk]
                 audioBuff = audioBuff[bytesPerChunk:]
 
-                writer.writerow(list(chain(*calculateLevels(chunk, buckets, audioFile.channels))))
+                writer.writerow(list(chain(*calculateLevels(chunk, channelBuckets))))
+
+    with open(jsonFilename, 'r+') as jsonFile:
+        metadata = json.load(jsonFile)
+
+        metadata['msPerLine'] = channelBuckets[0].samplesPerFFT / audioFile.samplerate * 1000
+        metadata['thresholds'] = list(chain(*[
+                buckets.thresholds()
+                for buckets in channelBuckets
+                ]))
+
+        jsonFile.seek(0)
+        json.dump(metadata, jsonFile)
+
+    for buckets in channelBuckets:
+        print(buckets.channelName, list(buckets.thresholds()))

@@ -52,6 +52,9 @@ try:
 
 finally:
     if proc.poll() is None:
+        sys.stdout.write('\033[s\033[1;1H\033[2K\033[3;1H\033[2K\033[2;3H\033[2K\033[m\033[u')
+        sys.stdout.flush()
+
         proc.terminate()
 
         time.sleep(2)

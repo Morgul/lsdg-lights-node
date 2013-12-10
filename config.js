@@ -34,7 +34,7 @@ module.exports = {
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1
     ],
 
-    serialPort: "/dev/ttyACM0",
+    serialPort: process.env.LSDG_LIGHTS_SERIAL || "/dev/ttyACM0",
     serialBaudrate: 115200
 }; // end exports
 

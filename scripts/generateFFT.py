@@ -66,14 +66,14 @@ class FrequencyBuckets(object):
             if not matched:
                 print("WARNING: Frequency {} didn't match any bucket!".format(freq))
 
-        self.amplitudes = [[]] * bucketCount
+        self.bucketHistories = [[] for _ in range(bucketCount)]
 
     def __call__(self, fftOutput):
         lastIdx = 0
         for bucketIdx, freqCount in enumerate(self.freqCounts):
             bucketAmplitude = sum(fftOutput[lastIdx:lastIdx + freqCount]) / freqCount
 
-            self.amplitudes[bucketIdx].append(bucketAmplitude)
+            self.bucketHistories[bucketIdx].append(bucketAmplitude)
             yield bucketAmplitude
 
             lastIdx += freqCount
@@ -84,17 +84,19 @@ class FrequencyBuckets(object):
                     )
 
     def thresholds(self):
-        for amplitudes in self.amplitudes:
-            amplitudes.sort()
+        for history in self.bucketHistories:
+            history = list(history)
+
+            history.sort()
 
             # Discard the lowest 10th percentile
-            del amplitudes[:len(amplitudes) / 10]
+            history = history[len(history) / 10:]
 
-            # Average the remaining amplitudes
-            #yield sum(amplitudes) / len(amplitudes)
+            # Average the remaining history
+            #yield sum(history) / len(history)
 
-            # Take the median of the remaining amplitudes
-            yield amplitudes[len(amplitudes) / 2]
+            # Take the median of the highest 90% of history
+            yield history[len(history) / 2]
 
 
 def calculateLevels(chunk, channelBuckets):

@@ -32,13 +32,14 @@ module.exports = {
     defaultThresholds: [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ],
 
     // Fake serial port for testing
-    //serialPort: "/dev/ttys0",
+    serialPort: process.env.LSDG_LIGHTS_SERIAL || "/dev/ttyAMA0",
 
     // Arduino USB serial port
     //serialPort: "/dev/ttyACM0",
 
     // Raspberry Pi GPIO Serial port
-    serialPort: "/dev/ttyAMA0",
+    //serialPort: "/dev/ttyAMA0",
+
 
     // Arduino baud rate
     serialBaudrate: 115200

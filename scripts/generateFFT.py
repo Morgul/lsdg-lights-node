@@ -96,10 +96,12 @@ class FrequencyBuckets(object):
 
             # Discard the lowest 10th percentile
             del amplitudes[:len(amplitudes) / 10]
-            #print(amplitudes)
 
             # Average the remaining amplitudes
-            yield sum(amplitudes) / len(amplitudes)
+            #yield sum(amplitudes) / len(amplitudes)
+
+            # Take the median of the remaining amplitudes
+            yield amplitudes[len(amplitudes) / 2]
 
 
 def calculateLevels(chunk, channelBuckets):

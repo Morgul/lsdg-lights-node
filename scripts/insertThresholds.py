@@ -9,6 +9,7 @@
 #   $ ./insertThresholds.py ~/music ~/Downloads/Thresholds
 #-----------------------------------------------------------------------------------------------------------------------
 
+from __future__ import print_function
 import sys
 import os
 import json
@@ -28,7 +29,7 @@ for root, dir, files in os.walk(sys.argv[1]):
         if os.path.exists(thresholdPath):
 
             with open(thresholdPath, 'r') as thresholdFile:
-                print thresholdPath
+                print(thresholdPath)
                 thresholds = [float(line) for line in thresholdFile]
 
                 with open(filePath, 'r+') as metaFile:

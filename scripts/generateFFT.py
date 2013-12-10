@@ -161,7 +161,7 @@ def generateFFT(inputFilename):
                     writer.writerow(list(chain(*calculateLevels(chunk, channelBuckets))))
 
         return {
-                'msPerLine': channelBuckets[0].samplesPerFFT * 1000 / audioFile.samplerate,
+                'msPerLine': channelBuckets[0].samplesPerFFT * 1000.0 / audioFile.samplerate,
                 'thresholds': list(chain(*[
                     buckets.thresholds()
                     for buckets in channelBuckets
